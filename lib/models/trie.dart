@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'trie_node.dart';
+import 'linked_collections.dart';
 
 class Trie {
   TrieNode root = TrieNode();
@@ -36,20 +37,20 @@ class Trie {
     return current != null && current.isEndOfWord;
   }
 
-  List<MapEntry<String, int>> autocomplete(String prefix) {
+  LinkedList<LinkedEntry<String, int>> autocomplete(String prefix) {
     TrieNode? current = root;
 
     for (int i = 0; i < prefix.length; i++) {
       String ch = prefix[i];
 
       if (!current!.children.containsKey(ch)) {
-        return [];
+        return LinkedList<LinkedEntry<String, int>>();
       }
 
       current = current.children[ch];
     }
 
-    List<MapEntry<String, int>> result = [];
+    final LinkedList<LinkedEntry<String, int>> result = LinkedList();
 
     _dfs(current!, prefix, result);
 
@@ -61,10 +62,10 @@ class Trie {
   void _dfs(
     TrieNode node,
     String currentWord,
-    List<MapEntry<String, int>> result,
+    LinkedList<LinkedEntry<String, int>> result,
   ) {
     if (node.isEndOfWord) {
-      result.add(MapEntry(currentWord, node.frequency));
+      result.add(LinkedEntry(currentWord, node.frequency));
     }
 
     for (var entry in node.children.entries) {
@@ -72,24 +73,24 @@ class Trie {
     }
   }
 
-  List<String> bfsAutocomplete(String prefix) {
+  LinkedList<String> bfsAutocomplete(String prefix) {
     TrieNode? current = root;
 
     for (int i = 0; i < prefix.length; i++) {
       String ch = prefix[i];
 
       if (!current!.children.containsKey(ch)) {
-        return [];
+        return LinkedList<String>();
       }
 
       current = current.children[ch];
     }
 
-    List<String> result = [];
+    final LinkedList<String> result = LinkedList();
 
-    List<MapEntry<TrieNode, String>> queue = [
-      MapEntry(current!, prefix)
-    ];
+    final LinkedList<LinkedEntry<TrieNode, String>> queue = LinkedList.from([
+      LinkedEntry(current!, prefix)
+    ]);
 
     while (queue.isNotEmpty) {
       var item = queue.removeAt(0);
@@ -104,7 +105,7 @@ class Trie {
 
       for (var child in node.children.entries) {
         queue.add(
-          MapEntry(
+          LinkedEntry(
             child.value,
             word + child.key,
           ),
@@ -115,40 +116,46 @@ class Trie {
     return result;
   }
 
-  Map<String, dynamic> toJsonNode(TrieNode node) {
-    return {
-      'isEndOfWord': node.isEndOfWord,
-      'frequency': node.frequency,
-      'children': node.children.map(
-        (key, value) => MapEntry(
-          key,
-          toJsonNode(value),
-        ),
-      ),
-    };
+  LinkedMap<String, dynamic> toJsonNode(TrieNode node) {
+    final LinkedMap<String, dynamic> m = LinkedMap();
+    m['isEndOfWord'] = node.isEndOfWord;
+    m['frequency'] = node.frequency;
+
+    final LinkedMap<String, dynamic> children = LinkedMap();
+    for (final e in node.children.entries) {
+      final me = e;
+      children[me.key] = toJsonNode(me.value).toMap();
+    }
+    m['children'] = children.toMap();
+
+    return m;
   }
 
-  TrieNode fromJsonNode(Map<String, dynamic> json) {
+  TrieNode fromJsonNode(LinkedMap<String, dynamic> json) {
     TrieNode node = TrieNode();
 
     node.isEndOfWord = json['isEndOfWord'];
 
     node.frequency = json['frequency'];
 
-    Map<String, dynamic> children = json['children'];
+    final rawChildren = json['children'];
+    final LinkedMap<String, dynamic> children = rawChildren is LinkedMap
+      ? (rawChildren as LinkedMap<String, dynamic>)
+      : LinkedMap<String, dynamic>.fromMap(rawChildren);
 
-    children.forEach((key, value) {
-      node.children[key] = fromJsonNode(value);
-    });
+    for (final LinkedEntry<String, dynamic> me in children.entries) {
+      node.children[me.key] = fromJsonNode(LinkedMap<String, dynamic>.fromMap(me.value));
+    }
 
     return node;
   }
 
   String exportTrie() {
-    return jsonEncode(toJsonNode(root));
+    return jsonEncode(toJsonNode(root).toMap());
   }
 
   void importTrie(String data) {
-    root = fromJsonNode(jsonDecode(data));
+    final decoded = jsonDecode(data);
+    root = fromJsonNode(LinkedMap.fromMap(decoded));
   }
 }

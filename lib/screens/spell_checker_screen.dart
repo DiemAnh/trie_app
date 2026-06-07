@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/trie.dart';
+import '../models/linked_collections.dart';
 import '../services/spell_service.dart';
 
 class SpellCheckerScreen
@@ -22,7 +23,7 @@ class _SpellCheckerScreenState
 
   Trie trie = Trie();
 
-  List<String> invalidWords = [];
+  LinkedList<String> invalidWords = LinkedList();
 
   void checkText() {
     invalidWords =

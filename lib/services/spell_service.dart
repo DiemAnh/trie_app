@@ -1,7 +1,8 @@
 import '../models/trie.dart';
+import '../models/linked_collections.dart';
 
 class SpellService {
-  static List<String> findInvalidWords(
+  static LinkedList<String> findInvalidWords(
     String text,
     Trie trie,
   ) {
@@ -12,11 +13,13 @@ class SpellService {
       ' ',
     );
 
-    List<String> words = text.split(
-      RegExp(r'\s+'),
+    final LinkedList<String> words = LinkedList.from(
+      text.split(
+        RegExp(r'\s+'),
+      ),
     );
 
-    Set<String> invalidWords = {};
+    final LinkedSet<String> invalidWords = LinkedSet();
 
     for (String word in words) {
       if (word.isNotEmpty &&
@@ -25,6 +28,6 @@ class SpellService {
       }
     }
 
-    return invalidWords.toList();
+    return LinkedList.from(invalidWords.toList());
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/trie.dart';
+import '../models/linked_collections.dart';
 
 class AutocompleteScreen
     extends StatefulWidget {
@@ -26,8 +27,8 @@ class _AutocompleteScreenState
       prefixController =
       TextEditingController();
 
-  List<MapEntry<String, int>>
-      suggestions = [];
+      LinkedList<LinkedEntry<String, int>>
+        suggestions = LinkedList();
 
   void addWords() {
     String text =
@@ -38,8 +39,10 @@ class _AutocompleteScreenState
       ' ',
     );
 
-    List<String> words = text.split(
-      RegExp(r'\s+'),
+    final LinkedList<String> words = LinkedList.from(
+      text.split(
+        RegExp(r'\s+'),
+      ),
     );
 
     for (String word in words) {

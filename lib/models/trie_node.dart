@@ -1,5 +1,7 @@
+import 'linked_collections.dart';
+
 class TrieNode {
-  Map<String, TrieNode> children = {};
+  LinkedMap<String, TrieNode> children = LinkedMap();
 
   bool isEndOfWord = false;
 
